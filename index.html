@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Monthly Budget Tracker</title>
+  <link rel="stylesheet" href="./styles.css" />
+
+  <!-- Premium font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- jsPDF -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">₿</div>
+      <div>
+        <div class="title">Monthly Budget Tracker</div>
+        <div class="subtitle">Simple • Royal • Real-life money planning</div>
+      </div>
+    </div>
+
+    <div class="topbar-actions">
+      <div class="chip hidden" id="userChip"></div>
+      <button class="btn ghost hidden" id="btnSignOut" type="button">Sign out</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- LOGIN -->
+    <section class="card" id="authCard">
+      <h2>Sign in</h2>
+      <p class="muted">Use your email and password.</p>
+
+      <div class="grid2">
+        <div>
+          <label for="email">Email</label>
+          <input id="email" type="email" placeholder="you@email.com" autocomplete="email" />
+        </div>
+        <div>
+          <label for="password">Password</label>
+          <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
+        </div>
+      </div>
+
+      <div class="row">
+        <button class="btn" id="btnLogin" type="button">Sign in</button>
+        <button class="btn outline" id="btnRegister" type="button">Create account</button>
+        <div class="spacer"></div>
+        <span class="pill" id="authStatus">Not signed in</span>
+      </div>
+
+      <div class="hint">
+        Tip: For GitHub Pages, add your domain in Firebase → Authentication → Authorized domains.
+      </div>
+    </section>
+
+    <!-- APP -->
+    <section class="card hidden" id="appCard">
+      <div class="row wrap">
+        <div class="control">
+          <label for="monthPicker">Pick a month</label>
+          <input type="month" id="monthPicker" title="Pick a month" />
+        </div>
+
+        <div class="control">
+          <label for="cutoffDay">Payday cutoff day</label>
+          <input type="number" id="cutoffDay" min="1" max="28" title="Payday cutoff day" />
+          <small class="muted">If a date is on/after this day, it counts for next month.</small>
+        </div>
+
+        <div class="spacer"></div>
+
+        <button class="btn outline" id="btnSeedDemo" type="button">Add sample setup</button>
+        <button class="btn ghost" id="btnExportPdf" type="button">Download report (PDF)</button>
+      </div>
+
+      <hr class="sep" />
+
+      <!-- TABS -->
+      <div class="tabs">
+        <button class="tab active" data-tab="overview" type="button">Overview</button>
+        <button class="tab" data-tab="monthly" type="button">This month</button>
+        <button class="tab" data-tab="plan" type="button">Budget plan</button>
+        <button class="tab" data-tab="spending" type="button">Spending</button>
+        <button class="tab" data-tab="life" type="button">Life stuff</button>
+        <button class="tab" data-tab="more" type="button">More</button>
+      </div>
+
+      <!-- OVERVIEW -->
+      <section class="tabpane active" id="tab-overview">
+        <div class="kpiRow">
+          <div class="kpi">
+            <div class="kpiLabel">Planned result</div>
+            <div class="kpiValue" id="kpiPlannedNet">RM 0</div>
+            <div class="kpiHint muted">Planned income − planned spending</div>
+          </div>
+          <div class="kpi">
+            <div class="kpiLabel">Actual result</div>
+            <div class="kpiValue" id="kpiActualNet">RM 0</div>
+            <div class="kpiHint muted">Actual income − actual spending</div>
+          </div>
+          <div class="kpi">
+            <div class="kpiLabel">Total spending</div>
+            <div class="kpiValue" id="kpiActualOutflows">RM 0</div>
+            <div class="kpiHint muted">All expenses this month</div>
+          </div>
+        </div>
+
+        <div class="gridCharts">
+          <div class="chartCard">
+            <div class="chartTitle">Planned vs actual</div>
+            <canvas id="barPlannedActual"></canvas>
+          </div>
+
+          <div class="chartCard">
+            <div class="chartTitle">Spending by group</div>
+            <canvas id="pieExpenses"></canvas>
+          </div>
+
+          <div class="chartCard full">
+            <div class="chartTitle">Last 12 months (net)</div>
+            <canvas id="lineNet"></canvas>
+          </div>
+        </div>
+      </section>
+
+      <!-- THIS MONTH -->
+      <section class="tabpane" id="tab-monthly">
+        <div class="row wrap">
+          <div>
+            <div class="muted">Planned vs actual for each category.</div>
+            <div class="muted" id="monthlyTotalsHint"></div>
+          </div>
+          <div class="spacer"></div>
+
+          <div class="control">
+            <label for="monthlyGroupFilter">Group</label>
+            <select id="monthlyGroupFilter" title="Filter by group"></select>
+          </div>
+
+          <div class="control">
+            <label for="monthlySearch">Search</label>
+            <input id="monthlySearch" type="text" placeholder="Type a category name..." title="Search category" />
+          </div>
+        </div>
+
+        <div class="tableWrap">
+          <table class="table table-monthly" id="monthlyTable">
+            <thead>
+              <tr>
+                <th class="col-m-group">Group</th>
+                <th class="col-m-category">Category</th>
+                <th class="col-m-type">Type</th>
+                <th class="col-m-planned">Planned</th>
+                <th class="col-m-actual">Actual</th>
+                <th class="col-m-diff">Left / Extra</th>
+                <th class="col-m-status">Status</th>
+                <th class="col-m-actions"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="hint">
+          “Left / Extra” means: for spending it’s <b>Planned − Actual</b> (positive = you’re under budget).
+        </div>
+      </section>
+
+      <!-- BUDGET PLAN -->
+      <section class="tabpane" id="tab-plan">
+        <div class="row wrap">
+          <div class="muted">Set your plan for the month.</div>
+          <div class="spacer"></div>
+          <button class="btn" id="btnAddPlanRow" type="button">+ Add item</button>
+          <button class="btn outline" id="btnSavePlan" type="button">Save</button>
+        </div>
+
+        <datalist id="dlGroups"></datalist>
+        <datalist id="dlCategories"></datalist>
+
+        <div class="tableWrap">
+          <table class="table table-plan" id="planTable">
+            <thead>
+              <tr>
+                <th class="col-p-group">Group</th>
+                <th class="col-p-category">Category</th>
+                <th class="col-p-type">Type</th>
+                <th class="col-p-planned">Planned (RM)</th>
+                <th class="col-p-actions"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="row">
+          <div class="pill">Shows up in Overview + This month</div>
+          <div class="spacer"></div>
+          <div class="muted" id="planSavedHint"></div>
+        </div>
+      </section>
+
+      <!-- SPENDING -->
+      <section class="tabpane" id="tab-spending">
+        <div class="row wrap">
+          <div class="muted">
+            Add what you spent (or earned). It auto places into the correct month using cutoff.
+          </div>
+          <div class="spacer"></div>
+          <button class="btn" id="btnAddTx" type="button">+ Add spending</button>
+        </div>
+
+        <div class="tableWrap">
+          <table class="table table-tx" id="txTable">
+            <thead>
+              <tr>
+                <th class="col-t-date">Date</th>
+                <th class="col-t-type">Type</th>
+                <th class="col-t-group">Group</th>
+                <th class="col-t-category">Category</th>
+                <th class="col-t-amount">Amount (RM)</th>
+                <th class="col-t-month">Month</th>
+                <th class="col-t-actions"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <div class="hint">
+          Tip: Bills + recurring can auto-create items from “Life stuff”.
+        </div>
+      </section>
+
+      <!-- LIFE STUFF -->
+      <section class="tabpane" id="tab-life">
+        <div class="grid2">
+          <!-- Bills -->
+          <div class="cardInner">
+            <h3>Bills to pay</h3>
+            <p class="muted">Monthly checklist (rent, utilities, phone...).</p>
+
+            <div class="gridBills">
+              <div>
+                <label for="billName">Bill name</label>
+                <input id="billName" placeholder="e.g. Rent / Internet" />
+              </div>
+              <div>
+                <label for="billGroup">Group</label>
+                <input id="billGroup" list="dlGroups" placeholder="e.g. Needs" />
+              </div>
+              <div>
+                <label for="billAmount">Amount (RM)</label>
+                <input id="billAmount" type="number" step="0.01" placeholder="0.00" />
+              </div>
+              <div>
+                <label for="billDueDay">Due day (1-28)</label>
+                <input id="billDueDay" type="number" min="1" max="28" placeholder="1" />
+              </div>
+            </div>
+
+            <div class="row">
+              <button class="btn" id="btnAddBill" type="button">Add bill</button>
+              <button class="btn outline" id="btnApplyBills" type="button">Apply to this month</button>
+              <button class="btn ghost" id="btnRefreshBills" type="button">Refresh</button>
+              <div class="spacer"></div>
+              <span class="muted" id="billStatus"></span>
+            </div>
+
+            <div class="tableWrap">
+              <table class="table table-bills" id="billsTable">
+                <thead>
+                  <tr>
+                    <th>Paid?</th>
+                    <th>Name</th>
+                    <th>Amount</th>
+                    <th>Due day</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <div class="hint">Apply to this month will create missing spending items (safe to press many times).</div>
+          </div>
+
+          <!-- Debts -->
+          <div class="cardInner">
+            <h3>Debts & loans</h3>
+            <p class="muted">House loan, car/motor loan, credit card (auto interest + principal).</p>
+
+            <div class="gridDebts">
+              <div>
+                <label for="debtName">Name</label>
+                <input id="debtName" placeholder="e.g. House Loan / Car Loan / Maybank Card" />
+              </div>
+              <div>
+                <label for="debtType">Type</label>
+                <select id="debtType">
+                  <option value="home_loan">Home loan</option>
+                  <option value="car_loan">Car loan</option>
+                  <option value="motor_loan">Motor loan</option>
+                  <option value="credit_card">Credit card</option>
+                </select>
+              </div>
+              <div>
+                <label for="debtApr">APR %</label>
+                <input id="debtApr" type="number" step="0.01" placeholder="e.g. 4.2" />
+              </div>
+              <div>
+                <label for="debtBalance">Current balance (RM)</label>
+                <input id="debtBalance" type="number" step="0.01" placeholder="0.00" />
+              </div>
+              <div>
+                <label for="debtMonthlyPay">Monthly payment (RM)</label>
+                <input id="debtMonthlyPay" type="number" step="0.01" placeholder="0.00" />
+              </div>
+              <div>
+                <label for="debtDueDay">Due day (1-28)</label>
+                <input id="debtDueDay" type="number" min="1" max="28" placeholder="1" />
+              </div>
+            </div>
+
+            <div class="row">
+              <button class="btn" id="btnAddDebt" type="button">Add debt</button>
+              <button class="btn outline" id="btnRefreshDebts" type="button">Refresh</button>
+              <div class="spacer"></div>
+              <span class="muted" id="debtStatus"></span>
+            </div>
+
+            <div class="tableWrap">
+              <table class="table table-debts" id="debtsTable">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Balance</th>
+                    <th>Monthly</th>
+                    <th>This month</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <div class="hint">
+              “This month” button records payment and updates balance using interest + principal.
+            </div>
+          </div>
+        </div>
+
+        <hr class="sep" />
+
+        <div class="grid2">
+          <!-- Sinking Funds -->
+          <div class="cardInner">
+            <h3>Saving pockets (Sinking funds)</h3>
+            <p class="muted">For big things: car repair, yearly insurance, holiday, etc.</p>
+
+            <div class="gridFunds">
+              <div>
+                <label for="fundName">Fund name</label>
+                <input id="fundName" placeholder="e.g. Car maintenance / Holiday / Insurance" />
+              </div>
+              <div>
+                <label for="fundGoal">Goal (RM)</label>
+                <input id="fundGoal" type="number" step="0.01" placeholder="0.00" />
+              </div>
+              <div>
+                <label for="fundTarget">Target month</label>
+                <input id="fundTarget" type="month" />
+              </div>
+              <div>
+                <label for="fundSaved">Current saved (RM)</label>
+                <input id="fundSaved" type="number" step="0.01" placeholder="0.00" />
+              </div>
+            </div>
+
+            <div class="row">
+              <button class="btn" id="btnAddFund" type="button">Add fund</button>
+              <button class="btn outline" id="btnRefreshFunds" type="button">Refresh</button>
+              <div class="spacer"></div>
+              <span class="muted" id="fundStatus"></span>
+            </div>
+
+            <div class="tableWrap">
+              <table class="table table-funds" id="fundsTable">
+                <thead>
+                  <tr>
+                    <th>Fund</th>
+                    <th>Saved</th>
+                    <th>Goal</th>
+                    <th>Monthly needed</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <div class="hint">“Monthly needed” auto calculates based on goal + target month.</div>
+          </div>
+
+          <!-- Vehicle -->
+          <div class="cardInner">
+            <h3>Vehicle maintenance</h3>
+            <p class="muted">Track service + next service due (km / months).</p>
+
+            <div class="gridVehicle">
+              <div>
+                <label for="vehName">Vehicle name</label>
+                <input id="vehName" placeholder="e.g. Myvi / Vios / Yamaha" />
+              </div>
+              <div>
+                <label for="vehPlate">Plate (optional)</label>
+                <input id="vehPlate" placeholder="ABC1234" />
+              </div>
+              <div>
+                <label for="vehMileage">Current mileage (km)</label>
+                <input id="vehMileage" type="number" step="1" placeholder="0" />
+              </div>
+              <div>
+                <label for="vehIntervalKm">Service interval (km)</label>
+                <input id="vehIntervalKm" type="number" step="1" placeholder="10000" />
+              </div>
+              <div>
+                <label for="vehIntervalMonths">Service interval (months)</label>
+                <input id="vehIntervalMonths" type="number" step="1" placeholder="6" />
+              </div>
+            </div>
+
+            <div class="row">
+              <button class="btn" id="btnAddVehicle" type="button">Add vehicle</button>
+              <button class="btn outline" id="btnRefreshVehicles" type="button">Refresh</button>
+              <div class="spacer"></div>
+              <span class="muted" id="vehStatus"></span>
+            </div>
+
+            <div class="tableWrap">
+              <table class="table table-vehicles" id="vehiclesTable">
+                <thead>
+                  <tr>
+                    <th>Vehicle</th>
+                    <th>Next due</th>
+                    <th>Service log</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <div class="hint">Use “Add service” inside each vehicle row.</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MORE -->
+      <section class="tabpane" id="tab-more">
+        <div class="grid2">
+          <div class="cardInner">
+            <h3>Download report</h3>
+            <p class="muted">PDF includes Summary + Debts + Bills + Funds + Vehicles.</p>
+            <button class="btn" id="btnExportPdf2" type="button">Download report (PDF)</button>
+          </div>
+
+          <div class="cardInner">
+            <h3>Recurring items (auto-add)</h3>
+            <p class="muted">Examples: Salary, rent, bills, subscriptions.</p>
+
+            <div class="gridRec">
+              <div>
+                <label for="recType">Type</label>
+                <select id="recType">
+                  <option value="expense">Spending</option>
+                  <option value="income">Income</option>
+                </select>
+              </div>
+              <div>
+                <label for="recGroup">Group</label>
+                <input id="recGroup" list="dlGroups" placeholder="e.g. Needs" />
+              </div>
+              <div>
+                <label for="recCategory">Category</label>
+                <input id="recCategory" list="dlCategories" placeholder="e.g. Salary / Rent" />
+              </div>
+              <div>
+                <label for="recAmount">Amount (RM)</label>
+                <input id="recAmount" type="number" step="0.01" placeholder="0.00" />
+              </div>
+              <div>
+                <label for="recDay">Day (1-28)</label>
+                <input id="recDay" type="number" min="1" max="28" placeholder="1" />
+              </div>
+              <div>
+                <label for="recStart">Start month</label>
+                <input id="recStart" type="month" />
+              </div>
+              <div>
+                <label for="recEnd">End month (optional)</label>
+                <input id="recEnd" type="month" />
+              </div>
+              <div>
+                <label for="recActive">Active</label>
+                <select id="recActive">
+                  <option value="true">Yes</option>
+                  <option value="false">No</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row">
+              <button class="btn" id="btnAddRecurring" type="button">Add recurring</button>
+              <button class="btn outline" id="btnApplyRecurring" type="button">Apply to this month</button>
+              <button class="btn ghost" id="btnRefreshRecurring" type="button">Refresh</button>
+              <div class="spacer"></div>
+              <span class="muted" id="recStatus"></span>
+            </div>
+
+            <div class="tableWrap">
+              <table class="table table-rec" id="recTable">
+                <thead>
+                  <tr>
+                    <th>Active</th>
+                    <th>Type</th>
+                    <th>Group</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Day</th>
+                    <th>Range</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+
+            <div class="hint">Safe to apply many times (no duplicates).</div>
+          </div>
+        </div>
+
+        <hr class="sep" />
+
+        <div class="cardInner">
+          <h3>Category list</h3>
+          <p class="muted">Add your groups + categories once. Then pick them everywhere.</p>
+
+          <div class="grid3">
+            <div>
+              <label for="catGroup">Group</label>
+              <input id="catGroup" placeholder="e.g. Needs" />
+            </div>
+            <div>
+              <label for="catName">Category</label>
+              <input id="catName" placeholder="e.g. Groceries" />
+            </div>
+            <div>
+              <label for="catType">Type</label>
+              <select id="catType">
+                <option value="expense">Spending</option>
+                <option value="income">Income</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <button class="btn" id="btnAddCategory" type="button">Add</button>
+            <button class="btn outline" id="btnRefreshCategories" type="button">Refresh</button>
+            <div class="spacer"></div>
+            <span class="muted" id="catStatus"></span>
+          </div>
+
+          <div class="tableWrap">
+            <table class="table table-cats" id="catsTable">
+              <thead>
+                <tr>
+                  <th>Group</th>
+                  <th>Category</th>
+                  <th>Type</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <hr class="sep" />
+
+        <div class="cardInner">
+          <h3>Account</h3>
+          <p class="muted">You can sign out from the top right.</p>
+          <span class="pill">Your data is saved in Firebase</span>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span class="muted">Built with HTML/CSS/JS + Firebase</span>
+  </footer>
+
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
