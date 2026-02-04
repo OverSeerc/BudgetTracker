@@ -10,6 +10,22 @@
           "input[type=month]"
         ]
       }
-    ]
+    ],
+    "compat-api/css": [
+      "default",
+      {
+        "ignore": [
+          "-webkit-overflow-scrolling",
+          "-webkit-text-size-adjust"
+        ]
+      }
+    ],
+    "axe/aria": [
+      "default",
+      {
+        "aria-required-children": "off"
+      }
+    ],
+    "no-inline-styles": "off"
   }
 }
