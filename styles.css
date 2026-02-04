@@ -16,8 +16,17 @@
   --shadow: 0 18px 45px rgba(15,23,42,0.10);
 }
 
+/* ===== Global ===== */
 *{ box-sizing:border-box; }
 html,body{ height:100%; }
+
+/* ✅ Critical: prevent iPhone “extra right space” */
+html, body{
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body{
   margin:0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -30,6 +39,7 @@ body{
 
 a{ color: inherit; }
 
+/* ===== Topbar ===== */
 .topbar{
   position: sticky;
   top:0;
@@ -75,10 +85,15 @@ a{ color: inherit; }
   gap:10px;
 }
 
+/* ===== Layout ===== */
 .wrap{
   max-width: 1180px;
+  width: 100%;
   margin: 0 auto;
   padding: 18px 14px 40px;
+
+  /* ✅ Critical: allow children to shrink properly */
+  min-width: 0;
 }
 
 .card{
@@ -87,6 +102,9 @@ a{ color: inherit; }
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   padding: 16px;
+
+  /* ✅ Prevent overflow inside cards */
+  min-width: 0;
 }
 
 .card.inner{
@@ -124,6 +142,7 @@ a{ color: inherit; }
   justify-content: space-between;
 }
 
+/* ===== Controls ===== */
 .controls{
   display:grid;
   grid-template-columns: 1fr 1fr auto;
@@ -131,6 +150,8 @@ a{ color: inherit; }
   padding-bottom: 12px;
   border-bottom: 1px solid var(--line);
   margin-bottom: 12px;
+
+  min-width: 0;
 }
 .controls-actions{
   display:flex;
@@ -164,8 +185,10 @@ a{ color: inherit; }
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
+  min-width: 0;
 }
 
+/* ===== Buttons ===== */
 .btn{
   border: 1px solid rgba(27,42,107,0.25);
   background: #fff;
@@ -195,6 +218,7 @@ a{ color: inherit; }
   color: var(--muted);
 }
 
+/* ===== Tabs ===== */
 .tabs{
   display:flex;
   gap:8px;
@@ -218,16 +242,19 @@ a{ color: inherit; }
 .tabpane{ display:none; }
 .tabpane.active{ display:block; }
 
+/* ===== KPIs ===== */
 .kpis{
   display:grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
+  min-width: 0;
 }
 .kpi{
   border: 1px solid var(--line);
   border-radius: 16px;
   background: rgba(255,255,255,0.92);
   padding: 12px;
+  min-width: 0;
 }
 .kpi.warn{
   border-color: rgba(138,107,0,0.25);
@@ -249,11 +276,13 @@ a{ color: inherit; }
   margin-top: 4px;
 }
 
+/* ===== Charts ===== */
 .gridCharts{
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-top: 12px;
+  min-width: 0;
 }
 .gridCharts .full{
   grid-column: 1 / -1;
@@ -263,27 +292,48 @@ a{ color: inherit; }
   margin-bottom: 10px;
 }
 
+/* ✅ Prevent canvas from stretching width on mobile */
+canvas{
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* ===== Filters ===== */
 .filters{
   display:grid;
   grid-template-columns: 240px 1fr;
   gap: 12px;
   align-items:end;
   margin: 12px 0;
+  min-width: 0;
 }
 
+/* ===== Tables ===== */
 .tableWrap{
   width: 100%;
-  overflow:auto;
+  max-width: 100%;
+  overflow-x: auto;                 /* ✅ scroll inside */
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
   border: 1px solid var(--line);
   border-radius: 16px;
   background: #fff;
+
+  /* ✅ keeps it from expanding the page */
+  min-width: 0;
 }
+
 .table{
   width: 100%;
   border-collapse: collapse;
-  min-width: 760px;
   background: #fff;
+
+  /* ✅ IMPORTANT CHANGE:
+     Remove hard min-width that breaks mobile.
+     The table can still scroll if it needs more room. */
+  min-width: 0;
 }
+
 .table th, .table td{
   padding: 10px 10px;
   border-bottom: 1px solid var(--line);
@@ -321,6 +371,7 @@ a{ color: inherit; }
 .pos{ color: #156f3c; }
 .neg{ color: #b42318; }
 
+/* ===== Badges & pills ===== */
 .badge{
   display:inline-flex;
   align-items:center;
@@ -347,6 +398,7 @@ a{ color: inherit; }
   color: var(--muted);
 }
 
+/* ===== Icon buttons ===== */
 .iconBtn{
   border: 1px solid var(--line);
   background: #fff;
@@ -375,18 +427,20 @@ a{ color: inherit; }
   color: var(--muted);
 }
 
-/* ✅ Layout repair: prevents weird stretching */
+/* ===== Life / More grids ===== */
 .gridLife{
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   align-items: start;
+  min-width: 0;
 }
 .gridMore{
   display:grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   align-items: start;
+  min-width: 0;
 }
 
 .footer{
@@ -396,7 +450,7 @@ a{ color: inherit; }
   font-size: 12px;
 }
 
-/* Responsive */
+/* ===== Responsive ===== */
 @media (max-width: 980px){
   .controls{
     grid-template-columns: 1fr;
@@ -422,7 +476,9 @@ a{ color: inherit; }
   .grid2{
     grid-template-columns: 1fr;
   }
+
+  /* ✅ Remove forced table min-width on mobile */
   .table{
-    min-width: 720px;
+    min-width: 0;
   }
 }
