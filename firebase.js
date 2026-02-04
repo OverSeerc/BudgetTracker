@@ -1,5 +1,15 @@
+// firebase.js (ESM)
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-analytics.js";
+
+import {
+  getAuth,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.8.0/firebase-auth.js";
+
 import {
   getFirestore,
   doc, setDoc, getDoc, updateDoc, deleteDoc,
@@ -7,7 +17,6 @@ import {
   query, where, orderBy
 } from "https://www.gstatic.com/firebasejs/12.8.0/firebase-firestore.js";
 
-// Your Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyCPQxyFs5ekzuk4VUnSGNBLRQm09nKwhig",
   authDomain: "budgettracker-c1080.firebaseapp.com",
@@ -19,11 +28,11 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+try { getAnalytics(app); } catch (_) {}
 
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// re-export helpers
 export {
   onAuthStateChanged,
   signInWithEmailAndPassword,
