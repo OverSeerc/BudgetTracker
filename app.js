@@ -81,7 +81,6 @@ function fundContribTxDocId(fundId, ym, dateISO) {
 }
 
 function monthsBetweenYM(a, b) {
-  // a,b = YYYY-MM. returns number of months from a -> b inclusive? we use simple diff
   const [ay,am] = a.split("-").map(Number);
   const [by,bm] = b.split("-").map(Number);
   return (by - ay) * 12 + (bm - am);
@@ -116,6 +115,8 @@ const txTableBody = $("txTable").querySelector("tbody");
 const kpiPlannedNet = $("kpiPlannedNet");
 const kpiActualNet = $("kpiActualNet");
 const kpiActualOutflows = $("kpiActualOutflows");
+const kpiUnpaidBills = $("kpiUnpaidBills");
+const kpiUnpaidBillsHint = $("kpiUnpaidBillsHint");
 
 const btnExportPdf = $("btnExportPdf");
 const btnExportPdf2 = $("btnExportPdf2");
@@ -226,7 +227,7 @@ let bills = [];
 let debts = [];
 let funds = [];
 let vehicles = [];
-let maintenanceLogs = []; // loaded per user, filtered in UI (simple)
+let maintenanceLogs = [];
 
 let currentPlan = [];
 let currentTransactions = [];
@@ -319,7 +320,6 @@ cutoffDayEl.addEventListener("change", async () => {
   cutoffDayEl.value = settings.cutoffDay;
   await saveSettings();
 
-  // cutoff affects month placement
   await recomputeAllTxEffectiveMonths();
   await applyAutoStuffForMonth(currentMonthYM);
 
@@ -398,7 +398,7 @@ function renderCategoriesTable() {
     tr.innerHTML=`
       <td>${escapeHtml(c.group)}</td>
       <td>${escapeHtml(c.name)}</td>
-      <td><span class="badge">${c.type==="income"?"Income":"Spending"}</span></td>
+      <td><span class="badge">${c.type==="income"?"income":"spending"}</span></td>
       <td><button class="iconBtn danger" type="button">✕</button></td>
     `;
     tr.querySelector("button").addEventListener("click", async ()=>{
@@ -497,7 +497,7 @@ function renderRecurringTable() {
           <option value="false">No</option>
         </select>
       </td>
-      <td><span class="badge">${r.type==="income"?"Income":"Spending"}</span></td>
+      <td><span class="badge">${r.type==="income"?"income":"spending"}</span></td>
       <td>${escapeHtml(r.group)}</td>
       <td>${escapeHtml(r.category)}</td>
       <td class="money">${escapeHtml(fmtRM(r.amount))}</td>
@@ -618,6 +618,7 @@ async function getBillPaidStatusForMonth(ym) {
   return map;
 }
 
+/* ✅ Bills table now shows Paid date column properly */
 async function renderBillsTable() {
   billsTableBody.innerHTML="";
   const paidMap = await getBillPaidStatusForMonth(currentMonthYM);
@@ -625,6 +626,7 @@ async function renderBillsTable() {
   for (const b of bills) {
     const status = paidMap.get(b.id);
     const paid = status ? !!status.paid : false;
+    const paidDate = status?.paidDate ? String(status.paidDate).slice(0,10) : "-";
 
     const tr=document.createElement("tr");
     tr.innerHTML=`
@@ -634,6 +636,7 @@ async function renderBillsTable() {
           <option value="true">Yes</option>
         </select>
       </td>
+      <td class="muted">${escapeHtml(paid ? paidDate : "-")}</td>
       <td>${escapeHtml(b.name)}</td>
       <td class="money">${escapeHtml(fmtRM(b.amount))}</td>
       <td>${escapeHtml(String(b.dueDay))}</td>
@@ -644,10 +647,6 @@ async function renderBillsTable() {
 
     sel.addEventListener("change", async ()=>{
       const val = sel.value==="true";
-      const { billStatusCol } = userRoot(currentUser.uid);
-
-      // Upsert status doc (doc id auto) using query-free strategy:
-      // Create deterministic doc id:
       const stId = `bill_${b.id}_${currentMonthYM}`;
       const stDoc = doc(db, "users", currentUser.uid, "billStatus", stId);
       await setDoc(stDoc, {
@@ -706,7 +705,7 @@ async function ensureBillsForMonth(ym) {
 btnAddDebt.addEventListener("click", async ()=>{
   const name=(debtName.value||"").trim();
   const type=debtType.value || "home_loan";
-  const apr=Number(debtApr.value||0); // %
+  const apr=Number(debtApr.value||0);
   const balance=Number(debtBalance.value||0);
   const monthly=Number(debtMonthlyPay.value||0);
   const dueDay=clampInt(debtDueDay.value,1,28,1);
@@ -799,7 +798,6 @@ async function recordDebtPaymentForMonth(debtId, ym) {
   const debt = debts.find(x=>x.id===debtId);
   if (!debt) return;
 
-  // Prevent double pay for same month using deterministic tx doc id
   const uid=currentUser.uid;
   const txId = debtPayTxDocId(debtId, ym);
   const txDoc = doc(db, "users", uid, "transactions", txId);
@@ -812,14 +810,12 @@ async function recordDebtPaymentForMonth(debtId, ym) {
   const dateISO = dateFromYMDay(ym, debt.dueDay);
   const eff = computeEffectiveMonth(dateISO, settings.cutoffDay);
 
-  // Simple amortization (monthly interest)
   const monthlyRate = (Number(debt.apr||0) / 100) / 12;
   const interest = debt.currentBalance * monthlyRate;
   const payment = Number(debt.monthlyPayment||0);
   const principal = Math.max(0, payment - interest);
   const newBalance = Math.max(0, debt.currentBalance - principal);
 
-  // Save payment transaction (expense)
   await setDoc(txDoc, {
     date: dateISO,
     type: "expense",
@@ -837,7 +833,6 @@ async function recordDebtPaymentForMonth(debtId, ym) {
     updatedAt: Date.now()
   }, { merge:true });
 
-  // Update debt balance
   await updateDoc(doc(db, "users", uid, "debts", debtId), {
     currentBalance: Number(newBalance.toFixed(2)),
     lastPaidMonth: ym,
@@ -1043,7 +1038,6 @@ async function loadMaintenanceLogs() {
       notes:String(x.notes||"")
     });
   });
-  // sort newest first
   list.sort((a,b)=> (b.date||"").localeCompare(a.date||""));
   maintenanceLogs=list;
 }
@@ -1128,7 +1122,6 @@ async function addServiceLogPrompt(vehicleId) {
     createdAt: Date.now()
   });
 
-  // also update current mileage if user entered higher
   if (mileage > Number(v.currentMileage||0)) {
     await updateDoc(doc(db, "users", currentUser.uid, "vehicles", vehicleId), {
       currentMileage: mileage,
@@ -1136,7 +1129,6 @@ async function addServiceLogPrompt(vehicleId) {
     });
   }
 
-  // optional: create spending item for maintenance cost
   if (cost > 0) {
     const eff = computeEffectiveMonth(dateISO, settings.cutoffDay);
     const txId = `maint_${vehicleId}_${dateISO}`;
@@ -1158,14 +1150,11 @@ async function addServiceLogPrompt(vehicleId) {
    Auto-stuff for a month
 ========================= */
 async function applyAutoStuffForMonth(ym) {
-  // Make sure master lists are loaded
   if (!recurring.length) await loadRecurring();
   if (!bills.length) await loadBills();
 
   await ensureRecurringForMonth(ym);
   await ensureBillsForMonth(ym);
-
-  // refresh paid map table view
   await renderBillsTable();
 }
 
@@ -1360,18 +1349,22 @@ function buildMonthlyRows() {
 
   const rows=[];
   for (const r of map.values()) {
-    let diff=0, status="On track", badge="ok";
+    let diff=0, status="On plan", badge="ok";
+
     if (r.type==="expense") {
       diff = r.planned - r.actual;
       if (r.planned===0 && r.actual>0) { status="Not planned"; badge="warn"; }
-      else if (diff>=0) { status="On track"; badge="ok"; }
+      else if (diff>=0) { status="Good (within plan)"; badge="ok"; }
       else { status="Over budget"; badge="bad"; }
     } else {
+      /* ✅ Income rule: more actual income is ALWAYS GOOD */
       diff = r.actual - r.planned;
       if (r.planned===0 && r.actual>0) { status="Extra income"; badge="ok"; }
-      else if (diff>=0) { status="On/above plan"; badge="ok"; }
+      else if (diff>0) { status="Good (above plan)"; badge="ok"; }
+      else if (diff===0) { status="On plan"; badge="ok"; }
       else { status="Below plan"; badge="warn"; }
     }
+
     rows.push({ ...r, diff, status, badge });
   }
 
@@ -1433,9 +1426,27 @@ function renderMonthlyView() {
 }
 
 /* =========================
-   Overview + charts
+   Overview + charts + Unpaid bills KPI
 ========================= */
-function renderOverview() {
+async function computeUnpaidBillsForMonth(ym) {
+  if (!bills.length) return { total: 0, count: 0 };
+
+  const paidMap = await getBillPaidStatusForMonth(ym);
+  let total = 0;
+  let count = 0;
+
+  for (const b of bills) {
+    const st = paidMap.get(b.id);
+    const isPaid = st ? !!st.paid : false;
+    if (!isPaid) {
+      total += Number(b.amount || 0);
+      count += 1;
+    }
+  }
+  return { total, count };
+}
+
+async function renderOverview() {
   const planIncome=sum(currentPlan.filter(i=>i.type==="income").map(i=>i.planned));
   const planExpense=sum(currentPlan.filter(i=>i.type!=="income").map(i=>i.planned));
   const planNet=planIncome-planExpense;
@@ -1448,6 +1459,10 @@ function renderOverview() {
   kpiActualNet.textContent = fmtRM(actualNet);
   kpiActualOutflows.textContent = fmtRM(actualExpense);
 
+  const unpaid = await computeUnpaidBillsForMonth(currentMonthYM);
+  kpiUnpaidBills.textContent = fmtRM(unpaid.total);
+  kpiUnpaidBillsHint.textContent = unpaid.count ? `${unpaid.count} bill(s) not paid yet` : "All bills paid 🎉";
+
   renderBarChart(planIncome, planExpense, actualIncome, actualExpense);
   renderPieChart(currentTransactions);
 }
@@ -1455,6 +1470,8 @@ function renderOverview() {
 function renderBarChart(planIncome, planExpense, actualIncome, actualExpense) {
   const ctx=document.getElementById("barPlannedActual");
   if (charts.bar) charts.bar.destroy();
+  if (!window.Chart) return;
+
   charts.bar = new Chart(ctx, {
     type:"bar",
     data:{
@@ -1471,6 +1488,7 @@ function renderBarChart(planIncome, planExpense, actualIncome, actualExpense) {
 function renderPieChart(transactions) {
   const ctx=document.getElementById("pieExpenses");
   if (charts.pie) charts.pie.destroy();
+  if (!window.Chart) return;
 
   const expenses=transactions.filter(t=>t.type!=="income");
   const byGroup=new Map();
@@ -1508,6 +1526,8 @@ async function computeNetTrendLast12(anchorYM) {
 function renderLineChart(points) {
   const ctx=document.getElementById("lineNet");
   if (charts.line) charts.line.destroy();
+  if (!window.Chart) return;
+
   charts.line=new Chart(ctx,{
     type:"line",
     data:{ labels: points.map(p=>p.ym), datasets:[{ label:"Net (income - spending)", data: points.map(p=>p.net) }] },
@@ -1527,9 +1547,8 @@ async function loadMonthData() {
 
   setMonthlyGroupOptions();
   renderMonthlyView();
-  renderOverview();
+  await renderOverview();
 
-  // tables that depend on month
   await renderBillsTable();
 }
 
@@ -1557,7 +1576,6 @@ async function recomputeAllTxEffectiveMonths() {
    Seed demo (fast setup)
 ========================= */
 btnSeedDemo.addEventListener("click", async ()=>{
-  // categories
   const demoCats=[
     {group:"Income", name:"Salary", type:"income"},
     {group:"Income", name:"Other", type:"income"},
@@ -1573,7 +1591,6 @@ btnSeedDemo.addEventListener("click", async ()=>{
   ];
 
   const { catsCol } = userRoot(currentUser.uid);
-  // add missing only
   const existing = new Set(categories.map(c=>`${c.group.toLowerCase()}||${c.name.toLowerCase()}||${c.type}`));
   const adds=[];
   for (const c of demoCats) {
@@ -1583,26 +1600,21 @@ btnSeedDemo.addEventListener("click", async ()=>{
   if (adds.length) await Promise.all(adds);
   await loadCategories();
 
-  // 1 recurring salary example
   const { recCol } = userRoot(currentUser.uid);
   await addDoc(recCol, {
     type:"income", group:"Income", category:"Salary",
     amount: 5000, dayOfMonth: 25, startMonth: currentMonthYM, endMonth: null, active:true, createdAt:Date.now()
   });
 
-  // 1 bill rent example
   const { billsCol } = userRoot(currentUser.uid);
   await addDoc(billsCol, { name:"Rent", group:"Needs", amount:1200, dueDay:1, active:true, createdAt:Date.now() });
 
-  // 1 fund example
   const { fundsCol } = userRoot(currentUser.uid);
   await addDoc(fundsCol, { name:"Car Maintenance", goalAmount:3000, targetMonth:addMonthsYM(currentMonthYM,10), currentSaved:0, active:true, createdAt:Date.now() });
 
-  // 1 debt example
   const { debtsCol } = userRoot(currentUser.uid);
   await addDoc(debtsCol, { name:"Car Loan", type:"car_loan", apr:3.2, currentBalance:40000, monthlyPayment:850, dueDay:5, active:true, createdAt:Date.now() });
 
-  // 1 vehicle example
   const { vehiclesCol } = userRoot(currentUser.uid);
   await addDoc(vehiclesCol, { name:"My Car", plate:"", currentMileage:60000, serviceIntervalKm:10000, serviceIntervalMonths:6, active:true, createdAt:Date.now() });
 
@@ -1642,7 +1654,6 @@ function exportMonthlyPdf() {
     }
   };
 
-  // Page 1: Summary
   pdf.setFont("helvetica","bold"); pdf.setFontSize(18);
   pdf.text(`Budget report — ${currentMonthYM}`, margin, y);
   y += 18;
@@ -1675,7 +1686,6 @@ function exportMonthlyPdf() {
     y += 14;
   });
 
-  // Category breakdown
   y += 10;
   pdf.setFont("helvetica","bold");
   pdf.text("Category breakdown (planned vs actual)", margin, y);
@@ -1721,7 +1731,6 @@ function exportMonthlyPdf() {
     y += 16;
   }
 
-  // Page: Debts
   pdf.addPage(); y=56;
   pdf.setFont("helvetica","bold"); pdf.setFontSize(16);
   pdf.text("Debts & Loans", margin, y);
@@ -1738,7 +1747,6 @@ function exportMonthlyPdf() {
     });
   }
 
-  // Page: Bills
   pdf.addPage(); y=56;
   pdf.setFont("helvetica","bold"); pdf.setFontSize(16);
   pdf.text("Bills to pay", margin, y);
@@ -1755,7 +1763,6 @@ function exportMonthlyPdf() {
     });
   }
 
-  // Page: Funds
   pdf.addPage(); y=56;
   pdf.setFont("helvetica","bold"); pdf.setFontSize(16);
   pdf.text("Saving pockets (Sinking funds)", margin, y);
@@ -1773,7 +1780,6 @@ function exportMonthlyPdf() {
     });
   }
 
-  // Page: Vehicles
   pdf.addPage(); y=56;
   pdf.setFont("helvetica","bold"); pdf.setFontSize(16);
   pdf.text("Vehicles & Maintenance", margin, y);
@@ -1794,7 +1800,6 @@ function exportMonthlyPdf() {
     });
   }
 
-  // Charts snapshot page
   pdf.addPage(); y=56;
   pdf.setFont("helvetica","bold"); pdf.setFontSize(14);
   pdf.text(`Charts — ${currentMonthYM}`, margin, y);
@@ -1824,3 +1829,4 @@ function exportMonthlyPdf() {
 ========================= */
 currentMonthYM = toYM(new Date());
 monthPicker.value = currentMonthYM;
+showTab("overview");
