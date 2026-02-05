@@ -233,6 +233,23 @@ const btnRefreshFunds = $("btnRefreshFunds");
 const fundStatus = $("fundStatus");
 const fundsTableBody = $("fundsTable")?.querySelector("tbody") || null;
 
+/* Overtime calculator */
+const otBaseRate = $("otBaseRate");
+const otDate = $("otDate");
+const otHours15 = $("otHours15");
+const otHours20 = $("otHours20");
+const otHours30 = $("otHours30");
+const otCategory = $("otCategory");
+const otResultTotal = $("otResultTotal");
+const btnAddOtIncome = $("btnAddOtIncome");
+
+/* Savings suggestion */
+const savePct = $("savePct");
+const investPct = $("investPct");
+const leftoverThisMonth = $("leftoverThisMonth");
+const suggestedSavings = $("suggestedSavings");
+const suggestedInvestment = $("suggestedInvestment");
+
 /* Vehicles */
 const vehName = $("vehName");
 const vehPlate = $("vehPlate");
@@ -1602,6 +1619,82 @@ async function computeUnpaidBillsForMonth(ym) {
   }
   return { total, count };
 }
+function computeOtPay() {
+  const base = Number(otBaseRate?.value || 0);
+  const h15 = Number(otHours15?.value || 0);
+  const h20 = Number(otHours20?.value || 0);
+  const h30 = Number(otHours30?.value || 0);
+
+  const total =
+    (base * 1.5 * h15) +
+    (base * 2.0 * h20) +
+    (base * 3.0 * h30);
+
+  return Number(total.toFixed(2));
+}
+
+function renderOtCalculator() {
+  if (!otResultTotal || !otBaseRate) return;
+  const total = computeOtPay();
+  otResultTotal.textContent = fmtRM(total);
+}
+
+
+function renderSavingsSuggestion(actualIncome, actualExpense) {
+  if (!leftoverThisMonth || !suggestedSavings || !suggestedInvestment) return;
+
+  const leftover = Number(actualIncome || 0) - Number(actualExpense || 0);
+  const saveP = Number(savePct?.value || 0) / 100;
+  const investP = Number(investPct?.value || 0) / 100;
+
+  const saveAmt = Math.max(0, leftover * saveP);
+  const investAmt = Math.max(0, leftover * investP);
+
+  leftoverThisMonth.textContent = fmtRM(leftover);
+  suggestedSavings.textContent = fmtRM(saveAmt);
+  suggestedInvestment.textContent = fmtRM(investAmt);
+}
+
+function wireOtAndSuggestionListenersOnce() {
+  const inputs = [otBaseRate, otHours15, otHours20, otHours30, savePct, investPct];
+  inputs.forEach(el => el?.addEventListener("input", () => {
+    // These depend on current month data, so just rerender the UI parts
+    renderOtCalculator();
+    // savings suggestion needs latest computed income/expense, so we trigger overview rerender
+    // (safe: it will no-op if kpis missing)
+    renderOverview();
+  }));
+
+  // button to save OT as income
+  btnAddOtIncome?.addEventListener("click", async () => {
+    const total = computeOtPay();
+    if (!total || total <= 0) return alert("OT total is 0. Please enter hours.");
+
+    const cat = (otCategory?.value || "Overtime").trim() || "Overtime";
+
+    // Date: optional. If empty, use today.
+    const dateISO = (otDate?.value || new Date().toISOString().slice(0, 10));
+    const eff = computeEffectiveMonth(dateISO, settings.cutoffDay);
+
+    await withLoading("Saving OT income…", async () => {
+      await addDoc(userRoot(currentUser.uid).txCol, {
+        date: dateISO,
+        type: "income",
+        group: "Income",
+        category: cat,
+        amount: total,
+        effectiveMonth: eff,
+        isOvertime: true,
+        createdAt: Date.now(),
+        updatedAt: Date.now()
+      });
+
+      await loadMonthData();
+      await loadTrendDataAndRender();
+      alert("OT added as income ✅");
+    });
+  });
+}
 
 async function renderOverview() {
   const planIncome = sum(currentPlan.filter(i => i.type === "income").map(i => i.planned));
@@ -1623,6 +1716,9 @@ async function renderOverview() {
 
   renderBarChart(planIncome, planExpense, actualIncome, actualExpense);
   renderPieChart(currentTransactions);
+  renderOtCalculator();
+  renderSavingsSuggestion(actualIncome, actualExpense);
+
 }
 
 function renderBarChart(planIncome, planExpense, actualIncome, actualExpense) {
@@ -1990,3 +2086,5 @@ function exportMonthlyPdf() {
 currentMonthYM = toYM(new Date());
 if (monthPicker) monthPicker.value = currentMonthYM;
 showTab("overview");
+wireOtAndSuggestionListenersOnce();
+renderOtCalculator();
