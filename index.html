@@ -6,6 +6,8 @@
   <title>Monthly Budget Tracker</title>
 
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="icon" href="data:,">
+
 
   <!-- Chart.js (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -15,8 +17,44 @@
 </head>
 
 <body>
+  <!-- ✅ Loading Popup -->
+  <div id="loadingOverlay" class="overlay hidden" aria-live="polite" aria-busy="true">
+    <div class="overlayCard">
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="overlayText">
+        <div class="overlayTitle" id="loadingTitle">Loading…</div>
+        <div class="overlaySub" id="loadingSub">Please wait</div>
+      </div>
+    </div>
+  </div>
+
   <!-- TOP BAR -->
   <header class="topbar">
+    <!-- LOADING OVERLAY -->
+<div id="loadingOverlay" class="hidden" style="
+  position:fixed; inset:0; z-index:9999;
+  background: rgba(15,23,42,0.45);
+  display:flex; align-items:center; justify-content:center;
+  padding: 18px;
+">
+  <div class="card" style="max-width:420px; width:100%; text-align:center;">
+    <div style="font-weight:950; font-size:16px;" id="loadingTitle">Loading…</div>
+    <div class="muted" style="margin-top:6px;" id="loadingSub">Please wait</div>
+    <div style="margin-top:12px; display:flex; justify-content:center;">
+      <div style="
+        width:26px; height:26px; border-radius:999px;
+        border: 3px solid rgba(27,42,107,0.25);
+        border-top-color: rgba(27,42,107,0.95);
+        animation: spin 0.9s linear infinite;
+      "></div>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
     <div class="brand">
       <div class="logo">B</div>
       <div>
@@ -101,17 +139,10 @@
             <div class="kpi-sub">Actual income − actual spending</div>
           </div>
 
-          <!-- ✅ NEW: Income KPI -->
           <div class="kpi">
-            <div class="kpi-label">Total income</div>
+            <div class="kpi-label">Actual income</div>
             <div class="kpi-value" id="kpiActualIncome">RM 0.00</div>
-            <div class="kpi-sub" id="kpiPlannedIncomeHint">Planned: RM 0.00</div>
-          </div>
-
-          <div class="kpi">
-            <div class="kpi-label">Total spending</div>
-            <div class="kpi-value" id="kpiActualOutflows">RM 0.00</div>
-            <div class="kpi-sub">All expenses this month</div>
+            <div class="kpi-sub">All income this month</div>
           </div>
 
           <div class="kpi warn">
@@ -121,52 +152,10 @@
           </div>
         </div>
 
-        <!-- ✅ NEW: Savings/Investment + Overtime (two cards) -->
         <div class="gridOverviewExtras">
-          <!-- Savings & investment suggestion -->
-          <div class="card inner">
-            <div class="cardTitle">Savings & investment suggestion</div>
-            <p class="muted small">
-              Based on your <b>actual</b> income and spending this month.
-            </p>
-
-            <div class="suggestBox">
-              <div class="suggestRow">
-                <div class="suggestLabel">Money left after spending</div>
-                <div class="suggestValue" id="kpiLeftover">RM 0.00</div>
-              </div>
-
-              <div class="grid2 suggestInputs">
-                <div class="field">
-                  <label for="savePct">Save %</label>
-                  <input id="savePct" type="number" min="0" max="100" step="1" value="60" />
-                </div>
-                <div class="field">
-                  <label for="investPct">Invest %</label>
-                  <input id="investPct" type="number" min="0" max="100" step="1" value="40" />
-                </div>
-              </div>
-
-              <div class="suggestRow">
-                <div class="suggestLabel">Suggested savings</div>
-                <div class="suggestValue" id="kpiSuggestedSave">RM 0.00</div>
-              </div>
-
-              <div class="suggestRow">
-                <div class="suggestLabel">Suggested investment</div>
-                <div class="suggestValue" id="kpiSuggestedInvest">RM 0.00</div>
-              </div>
-
-              <div class="note">
-                <b>Tip:</b> If “Money left” is negative, reduce spending first (or increase income).
-              </div>
-            </div>
-          </div>
-
-          <!-- Overtime calculator -->
-          <div class="card inner">
+          <section class="card inner">
             <div class="cardTitle">Overtime calculator</div>
-            <p class="muted">Enter base hourly rate + hours for each OT rate (1.5x, 2.0x, 3.0x).</p>
+            <p class="muted small">Enter hours for each OT rate. We calculate OT pay based on your base hourly rate.</p>
 
             <div class="grid2">
               <div class="field">
@@ -175,47 +164,82 @@
               </div>
 
               <div class="field">
-                <label for="otDate">Date (when saving as income)</label>
+                <label for="otDate">OT date (optional)</label>
                 <input id="otDate" type="date" />
               </div>
 
               <div class="field">
                 <label for="otH15">Hours @ 1.5x</label>
-                <input id="otH15" type="number" step="0.01" placeholder="e.g. 5" />
+                <input id="otH15" type="number" step="0.01" placeholder="0" />
               </div>
 
               <div class="field">
                 <label for="otH20">Hours @ 2.0x</label>
-                <input id="otH20" type="number" step="0.01" placeholder="e.g. 2" />
+                <input id="otH20" type="number" step="0.01" placeholder="0" />
               </div>
 
               <div class="field">
                 <label for="otH30">Hours @ 3.0x</label>
-                <input id="otH30" type="number" step="0.01" placeholder="e.g. 1" />
+                <input id="otH30" type="number" step="0.01" placeholder="0" />
               </div>
 
               <div class="field">
-                <label for="otGroup">Group (optional)</label>
-                <input id="otGroup" type="text" list="dlGroups" placeholder="Income" value="Income" />
+                <label for="otCategory">Save as category</label>
+                <input id="otCategory" type="text" placeholder="Overtime" value="Overtime" />
               </div>
-            </div>
-
-            <div class="row">
-              <button class="btn primary" id="btnCalcOT" type="button">Calculate</button>
-              <button class="btn" id="btnSaveOT" type="button">Save as income (this month)</button>
-              <span class="muted" id="otStatus"></span>
             </div>
 
             <div class="otResult">
               <div class="otLine">
-                <div class="muted">OT total</div>
-                <div class="moneyBig" id="otTotal">RM 0.00</div>
+                <div class="muted">Estimated OT pay</div>
+                <div class="moneyBig" id="otTotalPay">RM 0.00</div>
               </div>
-              <div class="otBreakdown muted small" id="otBreakdown">
-                Fill the form then press Calculate.
+
+              <div class="otBreakdown muted small" id="otBreakdown">Enter hours to calculate.</div>
+
+              <div class="row">
+                <button class="btn primary" id="btnAddOtIncome" type="button">Add OT as income (this month)</button>
+                <span class="muted small" id="otStatus"></span>
               </div>
             </div>
-          </div>
+          </section>
+
+          <section class="card inner">
+            <div class="cardTitle">Savings & investment suggestion</div>
+            <p class="muted small">Based on your actual leftover (income − spending).</p>
+
+            <div class="grid2 suggestInputs">
+              <div class="field">
+                <label for="savePct">Save %</label>
+                <input id="savePct" type="number" step="1" min="0" max="100" />
+              </div>
+              <div class="field">
+                <label for="investPct">Invest %</label>
+                <input id="investPct" type="number" step="1" min="0" max="100" />
+              </div>
+            </div>
+
+            <div class="suggestBox">
+              <div class="suggestRow">
+                <div class="suggestLabel">Leftover this month</div>
+                <div class="suggestValue" id="leftoverValue">RM 0.00</div>
+              </div>
+
+              <div class="suggestRow">
+                <div class="suggestLabel">Suggested savings</div>
+                <div class="suggestValue" id="suggestSave">RM 0.00</div>
+              </div>
+
+              <div class="suggestRow">
+                <div class="suggestLabel">Suggested investment</div>
+                <div class="suggestValue" id="suggestInvest">RM 0.00</div>
+              </div>
+
+              <div class="note" id="suggestNote">
+                Tip: If leftover is negative, focus on reducing spending first.
+              </div>
+            </div>
+          </section>
         </div>
 
         <div class="gridCharts">
@@ -513,10 +537,6 @@
                 <tbody></tbody>
               </table>
             </div>
-
-            <div class="note">
-              <b>Tip:</b> “Monthly needed” auto calculates based on goal + target month.
-            </div>
           </section>
 
           <!-- VEHICLES -->
@@ -566,12 +586,7 @@
                 <tbody></tbody>
               </table>
             </div>
-
-            <div class="note">
-              <b>Tip:</b> Use “Add service” to log service and auto-create a spending record if you enter a cost.
-            </div>
           </section>
-
         </div>
       </div>
 
@@ -697,7 +712,7 @@
     </section>
 
     <footer class="footer">
-      Built with HTML/CSS/JS + Firebase
+      𝕠𝕧𝕖𝕣𝕤𝕖𝕖𝕣 ✧ Admkhzmi
     </footer>
   </main>
 
