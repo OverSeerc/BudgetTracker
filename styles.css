@@ -1,3 +1,6 @@
+/* ==========================================================================
+   THEME TOKENS
+   ========================================================================== */
 :root{
   --bg: #f7f9ff;
   --card: #ffffff;
@@ -11,121 +14,157 @@
   --danger: #b42318;
 
   --radius: 18px;
-  --shadow: 0 18px 45px rgba(15,23,42,0.10);
+  --shadow: 0 18px 45px rgba(15, 23, 42, 0.10);
 }
 
-*{ box-sizing:border-box; }
-html,body{ height:100%; }
+
+/* ==========================================================================
+   BASE RESET / PAGE
+   ========================================================================== */
+*{ box-sizing: border-box; }
+
 html, body{
+  height: 100%;
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
 }
+
 body{
-  margin:0;
+  margin: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   color: var(--ink);
   background:
-    radial-gradient(900px 420px at 15% 0%, rgba(27,42,107,0.08), transparent 60%),
-    radial-gradient(900px 420px at 85% 0%, rgba(27,42,107,0.06), transparent 60%),
+    radial-gradient(900px 420px at 15% 0%, rgba(27, 42, 107, 0.08), transparent 60%),
+    radial-gradient(900px 420px at 85% 0%, rgba(27, 42, 107, 0.06), transparent 60%),
     var(--bg);
 }
 
-/* ✅ Loading Overlay */
+a{ color: inherit; }
+.hidden{ display: none !important; }
+
+
+/* ==========================================================================
+   LOADING OVERLAY
+   ========================================================================== */
 .overlay{
   position: fixed;
   inset: 0;
   z-index: 9999;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   padding: 18px;
   background: rgba(15, 23, 42, 0.35);
+
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);
 }
-.overlay.hidden{ display:none !important; }
+
+.overlay.hidden{ display: none !important; }
 
 .overlayCard{
   width: min(420px, 92vw);
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,0.25);
-  background: rgba(255,255,255,0.92);
-  box-shadow: 0 24px 70px rgba(15,23,42,0.25);
-  padding: 16px 16px;
-  display:flex;
+
+  display: flex;
+  align-items: center;
   gap: 12px;
-  align-items:center;
+
+  padding: 16px;
+  border-radius: 18px;
+
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.25);
 }
 
 .spinner{
   width: 26px;
   height: 26px;
   border-radius: 999px;
-  border: 3px solid rgba(27,42,107,0.18);
+
+  border: 3px solid rgba(27, 42, 107, 0.18);
   border-top-color: var(--royal);
+
   animation: spin 0.9s linear infinite;
 }
+
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .overlayTitle{
   font-weight: 950;
   letter-spacing: -0.01em;
 }
+
 .overlaySub{
   color: var(--muted);
   font-size: 12px;
   margin-top: 2px;
 }
 
-/* ===== Existing UI (same as before) ===== */
-a{ color: inherit; }
 
+/* ==========================================================================
+   TOP BAR / HEADER
+   ========================================================================== */
 .topbar{
   position: sticky;
-  top:0;
+  top: 0;
   z-index: 10;
-  display:flex;
-  align-items:center;
+
+  display: flex;
+  align-items: center;
   justify-content: space-between;
+
   padding: 14px 16px;
   border-bottom: 1px solid var(--line);
-  background: rgba(255,255,255,0.72);
+
+  background: rgba(255, 255, 255, 0.72);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
 
 .brand{
-  display:flex;
-  align-items:center;
-  gap:12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
+
 .logo{
   width: 34px;
   height: 34px;
   border-radius: 12px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
   background: linear-gradient(135deg, var(--royal), #0b143d);
   color: #fff;
   font-weight: 900;
 }
+
 .title{
   font-weight: 900;
   letter-spacing: -0.02em;
 }
+
 .subtitle{
   color: var(--muted);
   font-size: 12px;
 }
 
 .topbar-actions{
-  display:flex;
-  align-items:center;
-  gap:10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
+
+/* ==========================================================================
+   LAYOUT / CARDS
+   ========================================================================== */
 .wrap{
   max-width: 1180px;
   width: 100%;
@@ -142,65 +181,92 @@ a{ color: inherit; }
   padding: 16px;
   min-width: 0;
 }
-.card.inner{
-  box-shadow: 0 12px 28px rgba(15,23,42,0.07);
-}
 
-.hidden{ display:none !important; }
+.card.inner{
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.07);
+}
 
 .auth-card{
   max-width: 720px;
   margin: 28px auto;
 }
 
+
+/* ==========================================================================
+   TYPOGRAPHY HELPERS
+   ========================================================================== */
 .sectionTitle{
   margin: 0 0 6px;
   font-size: 18px;
   letter-spacing: -0.01em;
 }
+
 .muted{ color: var(--muted); }
 .small{ font-size: 12px; }
+
 .hint{
   color: var(--muted);
   font-size: 12px;
   margin-top: 6px;
 }
 
+
+/* ==========================================================================
+   ROWS / GRIDS
+   ========================================================================== */
 .row{
-  display:flex;
-  align-items:center;
-  gap:10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
   margin-top: 12px;
 }
-.row.between{
-  justify-content: space-between;
+
+.row.between{ justify-content: space-between; }
+
+.grid2{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  min-width: 0;
 }
 
+
+/* ==========================================================================
+   CONTROLS (TOP SECTION)
+   ========================================================================== */
 .controls{
-  display:grid;
+  display: grid;
   grid-template-columns: 1fr 1fr auto;
   gap: 12px;
+
   padding-bottom: 12px;
   border-bottom: 1px solid var(--line);
   margin-bottom: 12px;
   min-width: 0;
 }
+
 .controls-actions{
-  display:flex;
-  align-items:flex-end;
+  display: flex;
+  align-items: flex-end;
   justify-content: flex-end;
-  gap:10px;
+  gap: 10px;
   padding-bottom: 2px;
 }
 
+
+/* ==========================================================================
+   FORMS
+   ========================================================================== */
 .field label{
-  display:block;
+  display: block;
   font-size: 12px;
   color: var(--muted);
   margin-bottom: 6px;
 }
-.field input, .field select{
+
+.field input,
+.field select{
   width: 100%;
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -209,105 +275,126 @@ a{ color: inherit; }
   background: #fff;
   color: var(--ink);
 }
-.field input:focus, .field select:focus{
-  border-color: rgba(27,42,107,0.45);
-  box-shadow: 0 0 0 4px rgba(27,42,107,0.10);
+
+.field input:focus,
+.field select:focus{
+  border-color: rgba(27, 42, 107, 0.45);
+  box-shadow: 0 0 0 4px rgba(27, 42, 107, 0.10);
 }
 
-.grid2{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  min-width: 0;
-}
 
+/* ==========================================================================
+   BUTTONS / CHIPS
+   ========================================================================== */
 .btn{
-  border: 1px solid rgba(27,42,107,0.25);
+  border: 1px solid rgba(27, 42, 107, 0.25);
   background: #fff;
   color: var(--royal);
   font-weight: 800;
   border-radius: 14px;
   padding: 9px 12px;
-  cursor:pointer;
+  cursor: pointer;
 }
-.btn:hover{ border-color: rgba(27,42,107,0.45); }
+
+.btn:hover{ border-color: rgba(27, 42, 107, 0.45); }
+
 .btn.primary{
   background: var(--royal);
   color: #fff;
   border-color: transparent;
 }
+
 .btn.primary:hover{ background: var(--royal2); }
-.btn.ghost{
-  background: rgba(27,42,107,0.06);
-}
+
+.btn.ghost{ background: rgba(27, 42, 107, 0.06); }
 
 .chip{
   border: 1px solid var(--line);
-  background: rgba(255,255,255,0.8);
+  background: rgba(255, 255, 255, 0.8);
   border-radius: 999px;
   padding: 7px 10px;
   font-size: 12px;
   color: var(--muted);
 }
 
+
+/* ==========================================================================
+   TABS
+   ========================================================================== */
 .tabs{
-  display:flex;
-  gap:8px;
+  display: flex;
+  gap: 8px;
   flex-wrap: wrap;
   margin: 12px 0 10px;
 }
+
 .tab{
   border: 1px solid var(--line);
   background: #fff;
   border-radius: 999px;
   padding: 8px 12px;
-  cursor:pointer;
+
+  cursor: pointer;
   font-weight: 900;
   color: var(--ink);
 }
+
 .tab.active{
-  border-color: rgba(27,42,107,0.35);
-  box-shadow: 0 0 0 4px rgba(27,42,107,0.10);
+  border-color: rgba(27, 42, 107, 0.35);
+  box-shadow: 0 0 0 4px rgba(27, 42, 107, 0.10);
 }
 
-.tabpane{ display:none; }
-.tabpane.active{ display:block; }
+.tabpane{ display: none; }
+.tabpane.active{ display: block; }
 
+
+/* ==========================================================================
+   KPI CARDS
+   ========================================================================== */
 .kpis{
-  display:grid;
+  display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   min-width: 0;
 }
+
 .kpi{
   border: 1px solid var(--line);
   border-radius: 16px;
-  background: rgba(255,255,255,0.92);
+  background: rgba(255, 255, 255, 0.92);
   padding: 12px;
   min-width: 0;
 }
+
 .kpi.warn{
-  border-color: rgba(138,107,0,0.25);
-  background: rgba(138,107,0,0.06);
+  border-color: rgba(138, 107, 0, 0.25);
+  background: rgba(138, 107, 0, 0.06);
 }
+
 .kpi-label{
   color: var(--muted);
   font-size: 12px;
   margin-bottom: 4px;
 }
+
 .kpi-value{
   font-size: 24px;
   font-weight: 950;
   letter-spacing: -0.02em;
 }
+
 .kpi-sub{
   color: var(--muted);
   font-size: 12px;
   margin-top: 4px;
 }
 
+
+/* ==========================================================================
+   OVERVIEW EXTRAS (OT + SAVING SUGGESTION)
+   ========================================================================== */
 .gridOverviewExtras{
-  display:grid;
+  display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-top: 12px;
@@ -318,13 +405,14 @@ a{ color: inherit; }
 .suggestBox{ margin-top: 10px; }
 
 .suggestRow{
-  display:flex;
+  display: flex;
   justify-content: space-between;
   gap: 12px;
+
   padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: rgba(27,42,107,0.03);
+  background: rgba(27, 42, 107, 0.03);
   margin-top: 10px;
 }
 
@@ -332,51 +420,72 @@ a{ color: inherit; }
   font-weight: 900;
   color: var(--muted);
 }
+
 .suggestValue{ font-weight: 950; }
 
+
+/* ==========================================================================
+   OVERTIME BOX
+   ========================================================================== */
 .otResult{
   margin-top: 12px;
   border: 1px solid var(--line);
   border-radius: 16px;
   padding: 12px;
-  background: rgba(27,42,107,0.03);
+  background: rgba(27, 42, 107, 0.03);
 }
+
 .otLine{
-  display:flex;
-  align-items:baseline;
+  display: flex;
+  align-items: baseline;
   justify-content: space-between;
   gap: 12px;
 }
+
 .moneyBig{
   font-weight: 950;
   font-size: 22px;
   color: var(--royal);
 }
+
 .otBreakdown{
   margin-top: 8px;
   line-height: 1.35;
 }
 
+
+/* ==========================================================================
+   CHARTS
+   ========================================================================== */
 .gridCharts{
-  display:grid;
+  display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   margin-top: 12px;
   min-width: 0;
 }
+
 .gridCharts .full{ grid-column: 1 / -1; }
-.cardTitle{ font-weight: 950; margin-bottom: 10px; }
+
+.cardTitle{
+  font-weight: 950;
+  margin-bottom: 10px;
+}
 
 canvas{
   max-width: 100% !important;
   height: auto !important;
 }
 
+
+/* ==========================================================================
+   FILTERS + TABLES
+   ========================================================================== */
 .filters{
-  display:grid;
+  display: grid;
   grid-template-columns: 240px 1fr;
   gap: 12px;
-  align-items:end;
+  align-items: end;
   margin: 12px 0;
   min-width: 0;
 }
@@ -387,32 +496,39 @@ canvas{
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
+
   border: 1px solid var(--line);
   border-radius: 16px;
   background: #fff;
   min-width: 0;
 }
+
 .table{
   width: 100%;
   border-collapse: collapse;
   background: #fff;
   min-width: 0;
 }
-.table th, .table td{
-  padding: 10px 10px;
+
+.table th,
+.table td{
+  padding: 10px;
   border-bottom: 1px solid var(--line);
   font-size: 13px;
   vertical-align: middle;
 }
+
 .table th{
-  text-align:left;
+  text-align: left;
   color: var(--muted);
   font-weight: 900;
-  background: rgba(27,42,107,0.04);
+  background: rgba(27, 42, 107, 0.04);
 }
-.table .right{ text-align:right; }
 
-.table input, .table select{
+.table .right{ text-align: right; }
+
+.table input,
+.table select{
   width: 100%;
   max-width: 100%;
   border: 1px solid rgba(15, 23, 42, 0.16);
@@ -422,35 +538,59 @@ canvas{
   background: #fff;
   color: var(--ink);
 }
-.table input:focus, .table select:focus{
-  border-color: rgba(27,42,107,0.45);
-  box-shadow: 0 0 0 4px rgba(27,42,107,0.10);
+
+.table input:focus,
+.table select:focus{
+  border-color: rgba(27, 42, 107, 0.45);
+  box-shadow: 0 0 0 4px rgba(27, 42, 107, 0.10);
 }
+
 .table td:last-child{ white-space: nowrap; }
 
-.money{ font-weight: 900; text-align:right; }
+.money{
+  font-weight: 900;
+  text-align: right;
+}
 
+
+/* ==========================================================================
+   BADGES / PILLS / ICON BUTTONS
+   ========================================================================== */
 .badge{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
   padding: 5px 9px;
   border-radius: 999px;
   font-weight: 900;
   font-size: 12px;
-  background: rgba(27,42,107,0.06);
-  border: 1px solid rgba(27,42,107,0.12);
+
+  background: rgba(27, 42, 107, 0.06);
+  border: 1px solid rgba(27, 42, 107, 0.12);
 }
-.badge.ok{ background: rgba(21,111,60,0.08); border-color: rgba(21,111,60,0.18); }
-.badge.warn{ background: rgba(138,107,0,0.10); border-color: rgba(138,107,0,0.22); }
-.badge.bad{ background: rgba(180,35,24,0.08); border-color: rgba(180,35,24,0.18); }
+
+.badge.ok{
+  background: rgba(21, 111, 60, 0.08);
+  border-color: rgba(21, 111, 60, 0.18);
+}
+
+.badge.warn{
+  background: rgba(138, 107, 0, 0.10);
+  border-color: rgba(138, 107, 0, 0.22);
+}
+
+.badge.bad{
+  background: rgba(180, 35, 24, 0.08);
+  border-color: rgba(180, 35, 24, 0.18);
+}
 
 .pill{
-  display:inline-block;
+  display: inline-block;
   padding: 5px 9px;
   border-radius: 999px;
   border: 1px solid var(--line);
-  background: rgba(255,255,255,0.9);
+  background: rgba(255, 255, 255, 0.9);
   font-size: 12px;
   color: var(--muted);
 }
@@ -460,164 +600,135 @@ canvas{
   background: #fff;
   color: var(--royal);
   font-weight: 950;
+
   border-radius: 12px;
   padding: 7px 10px;
-  cursor:pointer;
-}
-.iconBtn:hover{ border-color: rgba(27,42,107,0.35); }
-.iconBtn.danger{
-  color: var(--danger);
-  border-color: rgba(180,35,24,0.25);
-  background: rgba(180,35,24,0.06);
+  cursor: pointer;
 }
 
+.iconBtn:hover{ border-color: rgba(27, 42, 107, 0.35); }
+
+.iconBtn.danger{
+  color: var(--danger);
+  border-color: rgba(180, 35, 24, 0.25);
+  background: rgba(180, 35, 24, 0.06);
+}
+
+
+/* ==========================================================================
+   NOTES / CALLOUTS
+   ========================================================================== */
 .note{
   margin-top: 12px;
-  border-left: 4px solid rgba(27,42,107,0.35);
-  background: rgba(27,42,107,0.05);
+  border-left: 4px solid rgba(27, 42, 107, 0.35);
+  background: rgba(27, 42, 107, 0.05);
   padding: 10px 12px;
   border-radius: 14px;
   color: var(--muted);
 }
 
-.gridLife, .gridMore{
-  display:grid;
+
+/* ==========================================================================
+   LIFE + MORE GRID LAYOUTS
+   ========================================================================== */
+.gridLife,
+.gridMore{
+  display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
   align-items: start;
   min-width: 0;
 }
-/* Vehicle tab should be full-width (one column) */
-#tab-vehicle .gridLife{
-  grid-template-columns: 1fr;
-}
+
+/* Vehicle tab should be full width (one column) */
+#tab-vehicle .gridLife{ grid-template-columns: 1fr; }
 
 
-.footer{
-  text-align:center;
-  margin-top: 18px;
-  color: var(--muted);
-  font-size: 12px;
-}
-
-/* Responsive */
-@media (max-width: 980px){
-  .controls{ grid-template-columns: 1fr; }
-  .controls-actions{ justify-content: flex-start; }
-  .kpis{ grid-template-columns: 1fr 1fr; }
-  .gridOverviewExtras{ grid-template-columns: 1fr; }
-  .gridCharts{ grid-template-columns: 1fr; }
-  .filters{ grid-template-columns: 1fr; }
-  .gridLife, .gridMore{ grid-template-columns: 1fr; }
-  .grid2{ grid-template-columns: 1fr; }
-}
-/* Vehicle tick-to-log suggestion list */
+/* ==========================================================================
+   VEHICLE: "TICK-TO-LOG" INLINE SUGGESTION ROW
+   ========================================================================== */
 .vehSugRow{
-  display:flex;
-  gap:10px;
-  align-items:flex-start;
-  margin-top:6px;
-  padding:6px 8px;
-  border:1px solid rgba(0,0,0,0.08);
-  border-radius:10px;
-  background: rgba(255,255,255,0.6);
-  cursor:pointer;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+
+  margin-top: 6px;
+  padding: 6px 8px;
+
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
 }
 
-.vehSugRow:hover{
-  background: rgba(255,255,255,0.9);
-}
+.vehSugRow:hover{ background: rgba(255, 255, 255, 0.9); }
 
 .vehSugChk{
-  margin-top:3px;
+  margin-top: 3px;
   transform: scale(1.1);
 }
 
 .vehSugText{
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-  font-size:12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
 }
 
-.vehSugBadge{
-  font-weight:700;
-}
+.vehSugBadge{ font-weight: 700; }
+.vehSugName{ font-weight: 600; }
+.vehSugDue{ opacity: 0.7; }
 
-.vehSugName{
-  font-weight:600;
-}
 
-.vehSugDue{
-  opacity:0.7;
-}
-/* Small toast popup */
-.toast{
-  position: fixed;
-  left: 50%;
-  bottom: 22px;
-  transform: translateX(-50%);
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(20, 28, 70, 0.95);
-  color: white;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.2px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .18s ease, transform .18s ease;
-  z-index: 9999;
-}
-
-.toast.show{
-  opacity: 1;
-  transform: translateX(-50%) translateY(-6px);
-}
-/* ===== Vehicle: suggestions modal ===== */
+/* ==========================================================================
+   MODAL (Vehicle suggestions)
+   ========================================================================== */
 .modalOverlay{
   position: fixed;
   inset: 0;
+  z-index: 9998;
+
   background: rgba(10, 12, 18, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 18px;
-  z-index: 9998;
 }
 
-.modalOverlay.hidden{ display:none; }
+.modalOverlay.hidden{ display: none; }
 
 .modalCard{
   width: min(720px, 96vw);
   max-height: min(78vh, 720px);
   overflow: auto;
+
   background: #fff;
   border-radius: 18px;
-  box-shadow: 0 18px 60px rgba(0,0,0,0.22);
-  border: 1px solid rgba(0,0,0,0.08);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
 .modalHead{
   position: sticky;
   top: 0;
+
   background: #fff;
   padding: 14px 16px;
-  border-bottom: 1px solid rgba(0,0,0,0.08);
-  display:flex;
-  align-items:center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+
+  display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
 
 .modalTitle{
   font-weight: 900;
-  letter-spacing: .2px;
+  letter-spacing: 0.2px;
 }
 
 .modalClose{
-  border: 1px solid rgba(0,0,0,0.12);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   background: #fff;
   border-radius: 10px;
   padding: 8px 10px;
@@ -625,9 +736,7 @@ canvas{
   font-weight: 800;
 }
 
-.modalBody{
-  padding: 12px 16px 16px;
-}
+.modalBody{ padding: 12px 16px 16px; }
 
 .sugList{
   display: grid;
@@ -636,18 +745,18 @@ canvas{
 }
 
 .sugItem{
-  display:flex;
+  display: flex;
   gap: 10px;
   align-items: flex-start;
+
   padding: 10px 12px;
   border-radius: 14px;
-  border: 1px solid rgba(0,0,0,0.08);
-  background: rgba(250,250,252,0.9);
+
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(250, 250, 252, 0.9);
 }
 
-.sugItem:hover{
-  background: #fff;
-}
+.sugItem:hover{ background: #fff; }
 
 .sugChk{
   margin-top: 4px;
@@ -655,22 +764,20 @@ canvas{
 }
 
 .sugMain{
-  display:flex;
+  display: flex;
   flex-direction: column;
   gap: 3px;
   min-width: 0;
 }
 
 .sugTop{
-  display:flex;
+  display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.sugName{
-  font-weight: 900;
-}
+.sugName{ font-weight: 900; }
 
 .sugMeta{
   font-size: 12px;
@@ -678,15 +785,18 @@ canvas{
 }
 
 .pillMini{
-  display:inline-flex;
-  align-items:center;
-  gap:6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
   padding: 4px 8px;
   border-radius: 999px;
+
   font-size: 12px;
   font-weight: 800;
-  border: 1px solid rgba(0,0,0,0.10);
-  background: rgba(255,255,255,0.9);
+
+  border: 1px solid rgba(0, 0, 0, 0.10);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 .pillMini.ok{ color: #1a6b3b; }
@@ -694,10 +804,12 @@ canvas{
 .pillMini.overdue{ color: #b42318; }
 
 .btnTiny{
-  border: 1px solid rgba(0,0,0,0.12);
+  border: 1px solid rgba(0, 0, 0, 0.12);
   background: #fff;
+
   border-radius: 999px;
   padding: 7px 10px;
+
   font-weight: 800;
   cursor: pointer;
   font-size: 12px;
@@ -709,30 +821,65 @@ canvas{
   border-color: transparent;
 }
 
-/* Vehicle tab should be full width */
-#tab-vehicle .gridLife{
-  grid-template-columns: 1fr;
-}
 
-/* Toast */
+/* ==========================================================================
+   TOAST (single clean definition)
+   ========================================================================== */
 .toast{
   position: fixed;
   left: 50%;
   bottom: 22px;
   transform: translateX(-50%);
+
   padding: 10px 14px;
   border-radius: 999px;
+
   background: rgba(20, 28, 70, 0.95);
   color: #fff;
+
   font-size: 13px;
   font-weight: 800;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.18);
+
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
   opacity: 0;
   pointer-events: none;
+
   transition: opacity .18s ease, transform .18s ease;
   z-index: 9999;
 }
+
 .toast.show{
   opacity: 1;
   transform: translateX(-50%) translateY(-6px);
+}
+
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+.footer{
+  text-align: center;
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+
+/* ==========================================================================
+   RESPONSIVE
+   ========================================================================== */
+@media (max-width: 980px){
+  .controls{ grid-template-columns: 1fr; }
+  .controls-actions{ justify-content: flex-start; }
+
+  .kpis{ grid-template-columns: 1fr 1fr; }
+  .gridOverviewExtras{ grid-template-columns: 1fr; }
+  .gridCharts{ grid-template-columns: 1fr; }
+
+  .filters{ grid-template-columns: 1fr; }
+
+  .gridLife,
+  .gridMore{ grid-template-columns: 1fr; }
+
+  .grid2{ grid-template-columns: 1fr; }
 }
