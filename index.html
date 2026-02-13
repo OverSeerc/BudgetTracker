@@ -2,12 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Monthly Budget Tracker</title>
 
   <link rel="stylesheet" href="./styles.css" />
-  <link rel="icon" href="data:,">
-
+  <link rel="icon" href="data:," />
 
   <!-- Chart.js (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -17,7 +16,7 @@
 </head>
 
 <body>
-  <!-- ✅ Loading Popup -->
+  <!-- Loading Overlay -->
   <div id="loadingOverlay" class="overlay hidden" aria-live="polite" aria-busy="true">
     <div class="overlayCard">
       <div class="spinner" aria-hidden="true"></div>
@@ -30,15 +29,6 @@
 
   <!-- TOP BAR -->
   <header class="topbar">
-  
-    </div>
-  </div>
-</div>
-
-<style>
-@keyframes spin { to { transform: rotate(360deg); } }
-</style>
-
     <div class="brand">
       <div class="logo">B</div>
       <div>
@@ -53,8 +43,8 @@
     </div>
   </header>
 
-  <!-- AUTH -->
   <main class="wrap">
+    <!-- AUTH -->
     <section class="card auth-card" id="authCard">
       <h2>Sign in</h2>
       <p class="muted">Use your email + password. (Firebase Authentication)</p>
@@ -64,6 +54,7 @@
           <label for="email">Email</label>
           <input id="email" type="email" placeholder="you@email.com" autocomplete="email" />
         </div>
+
         <div class="field">
           <label for="password">Password</label>
           <input id="password" type="password" placeholder="••••••••" autocomplete="current-password" />
@@ -104,8 +95,8 @@
         <button class="tab" data-tab="thismonth" type="button">This month</button>
         <button class="tab" data-tab="budgetplan" type="button">Budget plan</button>
         <button class="tab" data-tab="spending" type="button">Spending</button>
-        <button class="tab" data-tab="lifestuff" type="button">Life stuff</button>
         <button class="tab" data-tab="vehicle" type="button">Vehicle</button>
+        <button class="tab" data-tab="lifestuff" type="button">Life stuff</button>
         <button class="tab" data-tab="more" type="button">More</button>
       </div>
 
@@ -138,6 +129,7 @@
         </div>
 
         <div class="gridOverviewExtras">
+          <!-- Overtime -->
           <section class="card inner">
             <div class="cardTitle">Overtime calculator</div>
             <p class="muted small">Enter hours for each OT rate. We calculate OT pay based on your base hourly rate.</p>
@@ -189,6 +181,7 @@
             </div>
           </section>
 
+          <!-- Suggestion -->
           <section class="card inner">
             <div class="cardTitle">Savings & investment suggestion</div>
             <p class="muted small">Based on your actual leftover (income − spending).</p>
@@ -198,6 +191,7 @@
                 <label for="savePct">Save %</label>
                 <input id="savePct" type="number" step="1" min="0" max="100" />
               </div>
+
               <div class="field">
                 <label for="investPct">Invest %</label>
                 <input id="investPct" type="number" step="1" min="0" max="100" />
@@ -354,11 +348,101 @@
         </p>
       </div>
 
+      <!-- VEHICLE -->
+      <div class="tabpane" id="tab-vehicle">
+        <div class="gridLife">
+          <!-- Monthly mileage -->
+          <section class="card inner">
+            <h2 class="sectionTitle">Monthly mileage check-in (every 27th)</h2>
+            <p class="muted">Log your odometer reading monthly. This updates your vehicle mileage and your maintenance reminders.</p>
+
+            <div class="grid2">
+              <div class="field">
+                <label for="mileVehicle">Vehicle</label>
+                <select id="mileVehicle"></select>
+              </div>
+
+              <div class="field">
+                <label for="mileDate">Date</label>
+                <input id="mileDate" type="date" />
+                <div class="hint">Tip: set this to the 27th.</div>
+              </div>
+
+              <div class="field">
+                <label for="mileValue">Odometer (km)</label>
+                <input id="mileValue" type="number" step="1" placeholder="e.g. 65330" />
+              </div>
+            </div>
+
+            <div class="row">
+              <button class="btn primary" id="btnLogMileage" type="button">Log mileage</button>
+              <span class="muted" id="mileStatus"></span>
+            </div>
+
+            <div class="note">
+              We save one mileage record per vehicle per month (27th). Logging again will overwrite that month’s record.
+            </div>
+          </section>
+
+          <!-- Vehicles -->
+          <section class="card inner">
+            <h2 class="sectionTitle">Vehicle maintenance</h2>
+            <p class="muted">Track service + next service due (km / months).</p>
+
+            <div class="grid2">
+              <div class="field">
+                <label for="vehName">Vehicle name</label>
+                <input id="vehName" type="text" placeholder="e.g. Myvi / Vios / Yamaha" />
+              </div>
+
+              <div class="field">
+                <label for="vehPlate">Plate (optional)</label>
+                <input id="vehPlate" type="text" placeholder="ABC1234" />
+              </div>
+
+              <div class="field">
+                <label for="vehMileage">Current mileage (km)</label>
+                <input id="vehMileage" type="number" step="1" placeholder="0" />
+              </div>
+
+              <div class="field">
+                <label for="vehIntervalKm">Service interval (km)</label>
+                <input id="vehIntervalKm" type="number" step="1" value="10000" />
+              </div>
+
+              <div class="field">
+                <label for="vehIntervalMonths">Service interval (months)</label>
+                <input id="vehIntervalMonths" type="number" step="1" value="6" />
+              </div>
+            </div>
+
+            <div class="row">
+              <button class="btn primary" id="btnAddVehicle" type="button">Add vehicle</button>
+              <button class="btn" id="btnRefreshVehicles" type="button">Refresh</button>
+              <span class="muted" id="vehStatus"></span>
+            </div>
+
+            <div class="tableWrap">
+              <table class="table" id="vehiclesTable">
+                <thead>
+                  <tr>
+                    <th>Vehicle</th>
+                    <th>Next due</th>
+                    <th>Service log</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+
       <!-- LIFE STUFF -->
       <div class="tabpane" id="tab-lifestuff">
         <div class="gridLife">
-
-          <!-- BILLS -->
+          <!-- Bills -->
           <section class="card inner">
             <h2 class="sectionTitle">Bills to pay</h2>
             <p class="muted">Monthly checklist (rent, utilities, phone...).</p>
@@ -368,14 +452,17 @@
                 <label for="billName">Bill name</label>
                 <input id="billName" type="text" placeholder="e.g. Rent / Internet" />
               </div>
+
               <div class="field">
                 <label for="billGroup">Group</label>
                 <input id="billGroup" type="text" list="dlGroups" placeholder="e.g. Needs" />
               </div>
+
               <div class="field">
                 <label for="billAmount">Amount (RM)</label>
                 <input id="billAmount" type="number" step="0.01" placeholder="0.00" />
               </div>
+
               <div class="field">
                 <label for="billDueDay">Due day (1–28)</label>
                 <input id="billDueDay" type="number" min="1" max="28" value="1" />
@@ -410,7 +497,7 @@
             </div>
           </section>
 
-          <!-- DEBTS -->
+          <!-- Debts -->
           <section class="card inner">
             <h2 class="sectionTitle">Debts & loans</h2>
             <p class="muted">House loan, car/motor loan, credit card (auto interest + principal).</p>
@@ -478,7 +565,7 @@
             </div>
           </section>
 
-          <!-- FUNDS -->
+          <!-- Funds -->
           <section class="card inner">
             <h2 class="sectionTitle">Saving pockets (Sinking funds)</h2>
             <p class="muted">For big things: car repair, yearly insurance, holiday, etc.</p>
@@ -488,14 +575,17 @@
                 <label for="fundName">Fund name</label>
                 <input id="fundName" type="text" placeholder="e.g. Car maintenance / Holiday / Insurance" />
               </div>
+
               <div class="field">
                 <label for="fundGoal">Goal (RM)</label>
                 <input id="fundGoal" type="number" step="0.01" placeholder="0.00" />
               </div>
+
               <div class="field">
                 <label for="fundTarget">Target month</label>
                 <input id="fundTarget" type="month" />
               </div>
+
               <div class="field">
                 <label for="fundSaved">Current saved (RM)</label>
                 <input id="fundSaved" type="number" step="0.01" placeholder="0.00" />
@@ -523,69 +613,13 @@
               </table>
             </div>
           </section>
-
-        </div>
-      </div>
-
-      <!-- VEHICLE (NEW TAB) -->
-      <div class="tabpane" id="tab-vehicle">
-        <div class="gridLife">
-
-          <!-- VEHICLES -->
-          <section class="card inner">
-            <h2 class="sectionTitle">Vehicle maintenance</h2>
-            <p class="muted">Track service + next service due (km / months).</p>
-
-            <div class="grid2">
-              <div class="field">
-                <label for="vehName">Vehicle name</label>
-                <input id="vehName" type="text" placeholder="e.g. Myvi / Vios / Yamaha" />
-              </div>
-              <div class="field">
-                <label for="vehPlate">Plate (optional)</label>
-                <input id="vehPlate" type="text" placeholder="ABC1234" />
-              </div>
-              <div class="field">
-                <label for="vehMileage">Current mileage (km)</label>
-                <input id="vehMileage" type="number" step="1" placeholder="0" />
-              </div>
-              <div class="field">
-                <label for="vehIntervalKm">Service interval (km)</label>
-                <input id="vehIntervalKm" type="number" step="1" value="10000" />
-              </div>
-              <div class="field">
-                <label for="vehIntervalMonths">Service interval (months)</label>
-                <input id="vehIntervalMonths" type="number" step="1" value="6" />
-              </div>
-            </div>
-
-            <div class="row">
-              <button class="btn primary" id="btnAddVehicle" type="button">Add vehicle</button>
-              <button class="btn" id="btnRefreshVehicles" type="button">Refresh</button>
-              <span class="muted" id="vehStatus"></span>
-            </div>
-
-            <div class="tableWrap">
-              <table class="table" id="vehiclesTable">
-                <thead>
-                  <tr>
-                    <th>Vehicle</th>
-                    <th>Next due</th>
-                    <th>Service log</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody></tbody>
-              </table>
-            </div>
-          </section>
-
         </div>
       </div>
 
       <!-- MORE -->
       <div class="tabpane" id="tab-more">
         <div class="gridMore">
+          <!-- Categories -->
           <section class="card inner">
             <h2 class="sectionTitle">Categories</h2>
             <p class="muted">Manage your groups and categories (simple words, not developer style).</p>
@@ -595,10 +629,12 @@
                 <label for="catGroup">Group</label>
                 <input id="catGroup" type="text" placeholder="e.g. Needs / Wants / Income" />
               </div>
+
               <div class="field">
                 <label for="catName">Category</label>
                 <input id="catName" type="text" placeholder="e.g. Groceries" />
               </div>
+
               <div class="field">
                 <label for="catType">Type</label>
                 <select id="catType">
@@ -629,6 +665,7 @@
             </div>
           </section>
 
+          <!-- Recurring -->
           <section class="card inner">
             <h2 class="sectionTitle">Recurring items</h2>
             <p class="muted">Auto-create items each month (salary, subscriptions, etc.).</p>
@@ -641,30 +678,37 @@
                   <option value="income">income</option>
                 </select>
               </div>
+
               <div class="field">
                 <label for="recGroup">Group</label>
                 <input id="recGroup" type="text" list="dlGroups" placeholder="e.g. Income / Needs" />
               </div>
+
               <div class="field">
                 <label for="recCategory">Category</label>
                 <input id="recCategory" type="text" list="dlCategories" placeholder="e.g. Salary / Netflix" />
               </div>
+
               <div class="field">
                 <label for="recAmount">Amount (RM)</label>
                 <input id="recAmount" type="number" step="0.01" placeholder="0.00" />
               </div>
+
               <div class="field">
                 <label for="recDay">Day of month (1–28)</label>
                 <input id="recDay" type="number" min="1" max="28" value="1" />
               </div>
+
               <div class="field">
                 <label for="recStart">Start month</label>
                 <input id="recStart" type="month" />
               </div>
+
               <div class="field">
                 <label for="recEnd">End month (optional)</label>
                 <input id="recEnd" type="month" />
               </div>
+
               <div class="field">
                 <label for="recActive">Active?</label>
                 <select id="recActive">
@@ -701,15 +745,17 @@
           </section>
         </div>
       </div>
-
     </section>
 
-    <footer class="footer">
-      𝕠𝕧𝕖𝕣𝕤𝕖𝕖𝕣 ✧ Admkhzmi
-    </footer>
+    <footer class="footer">𝕠𝕧𝕖𝕣𝕤𝕖𝕖𝕣 ✧ Admkhzmi</footer>
   </main>
 
   <script type="module" src="./firebase.js"></script>
   <script type="module" src="./app.js"></script>
+
+  <!-- Optional: keep spinner keyframes here if not in styles.css -->
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </body>
 </html>
